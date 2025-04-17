@@ -15,6 +15,12 @@ A Home Assistant integration for monitoring OpenWRT routers and access points. P
 - Automatic discovery of access points
 - Beautiful Home Assistant dashboard card
 
+![Dashboard Example](img/1.png)
+
+![Dashboard Example](img/2.png)
+
+![Dashboard Example](img/3.png)
+
 ## Prerequisites
 
 - OpenWRT router(s) with:
