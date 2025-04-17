@@ -75,18 +75,20 @@ A Home Assistant integration for monitoring OpenWRT routers and access points. P
    - Copy the MQTT and template components from `HA/configuration.yaml` to your Home Assistant's `configuration.yaml`
    - Edit the MQTT topic names to match your router names (e.g., `openwrt/your_router_name/status`)
 
-3. Set up templates:
+3. Add the reference to the `sensor.yaml` file
+
+```yaml
+- platform: template
+  sensors: !include templates/wifi_clients_combined.yaml
+```
+
+4. Set up templates:
    - Copy files from `HA/Templates` to your Home Assistant's templates directory (usually `config/templates`)
    - Edit both files for list of routers and networks to monitor #todo - do this dynamically 
 
-4. Add the card to your dashboard:
-   ```yaml
-   # Add contents of wifi-routes-card.yaml to your dashboard
-   ```
+5. Add the card to your dashboard:
 
-5. Restart Home Assistant
+   Copy the content of the `HA Card/wifi-routes-card.yaml` to an empty dashbaord card. Set its width to 100%.
 
+6. Restart Home Assistant (a Quick Restart should do).
 
-## License
-
-MIT License - See LICENSE file for details
