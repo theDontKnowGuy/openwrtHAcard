@@ -1,0 +1,43 @@
+wifi_clients_combined:
+  friendly_name: "WiFi Clients Combined"
+  value_template: >
+    {% set routers = {
+      'Groute1': 'sensor.groute_1_status',
+      'Groute2': 'sensor.groute_2_status',
+      'Groute3': 'sensor.groute_3_status',
+      'Groute4': 'sensor.groute_4_status'
+    } %}
+    {% set total_clients = namespace(count=0) %}
+    {% for router_name, sensor_id in routers.items() %}
+      {% set nets = state_attr(sensor_id, 'wifi_networks') %}
+      {% if nets %}
+        {% for net in nets %}
+          {% set total_clients.count = total_clients.count + net.clients|length %}
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+    {{ total_clients.count }} total clients
+  attribute_templates:
+    clients_json: >-
+      {
+        "clients": [
+          {% set first = true %}
+          {% for router_id in ['sensor.groute_1_status', 'sensor.groute_2_status', 'sensor.groute_3_status', 'sensor.groute_4_status'] %}
+            {% set router_name = router_id.split('.')[1].replace('_status', '').replace('_', '') | upper %}
+            {% set networks = state_attr(router_id, 'wifi_networks') %}
+            {% if networks %}
+              {% for net in networks %}
+                {% if net.clients %}
+                  {% for client in net.clients %}
+                    {% if not first %},{% else %}{% set first = false %}{% endif %}
+                    {"ssid":"{{ net.ssid }}","router":"{{ router_name }}","mac":"{{ client }}","interface":"{{ net.interface }}"}
+                  {% endfor %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+          {% if first %}
+            {"ssid":"NO_DATA","router":"NONE","mac":"00:00:00:00:00:00","interface":"none"}
+          {% endif %}
+        ]
+      }

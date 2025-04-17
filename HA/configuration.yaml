@@ -1,0 +1,44 @@
+mqtt:
+  sensor:
+    - name: "Groute 1 Status"
+      state_topic: "openwrt/Groute1/status"
+      value_template: "{{ value_json.wan_ip }}"
+      json_attributes_topic: "openwrt/Groute1/status"
+
+    - name: "Groute 1 CPU Usage"
+      state_topic: "openwrt/Groute1/status"
+      value_template: "{{ value_json.cpu.usage_percent }}"
+      unit_of_measurement: "%"
+
+    - name: "Groute 1 Uptime"
+      state_topic: "openwrt/Groute1/status"
+      value_template: "{{ value_json.uptime_seconds }}"
+      unit_of_measurement: "s"
+
+    - name: "Groute 1 Free Memory"
+      state_topic: "openwrt/Groute1/status"
+      value_template: "{{ value_json.memory.free_kb }}"
+      unit_of_measurement: "KB"
+
+    - name: "Groute 2 Status"
+      state_topic: "openwrt/Groute2/status"
+      value_template: "{{ value_json.wan_ip }}"
+      json_attributes_topic: "openwrt/Groute2/status"
+
+    - name: "Groute 3 Status"
+      state_topic: "openwrt/Groute3/status"
+      value_template: "{{ value_json.wan_ip }}"
+      json_attributes_topic: "openwrt/Groute3/status"
+
+    - name: "Groute 4 Status"
+      state_topic: "openwrt/Groute4/status"
+      value_template: "{{ value_json.wan_ip }}"
+      json_attributes_topic: "openwrt/Groute4/status"
+
+    - name: "endpoints_ips"
+      state_topic: "openwrt/endpoints_ips"
+      value_template: "{{ value_json.dhcp_leases }}"
+      json_attributes_topic: "openwrt/endpoints_ips"
+
+sensor: !include sensors.yaml #keep this line here, after the mqtt sensor section and before the template section
+template: !include templates/wifi_display_template.yaml

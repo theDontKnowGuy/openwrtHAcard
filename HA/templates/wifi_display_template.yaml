@@ -1,0 +1,29 @@
+- sensor:
+    - name: "WiFi Clients Display"
+      state: "{{ now() }}"
+      attributes:
+        raw_data: >-
+          {{ state_attr('sensor.wifi_clients_combined', 'clients_json') }}
+        raw_type: >-
+          {{ state_attr('sensor.wifi_clients_combined', 'clients_json') | type_of if state_attr('sensor.wifi_clients_combined', 'clients_json') else 'NULL' }}
+        clients_json: >-
+          {{ state_attr('sensor.wifi_clients_combined', 'clients_json') }}
+        has_attr_clients_json: >-
+          {{ state_attr('sensor.wifi_clients_combined', 'clients_json') != None }}
+        combined_state: >-
+          {{ states('sensor.wifi_clients_combined') }}
+        combined_attributes: >-
+          {{ states.sensor.wifi_clients_combined.attributes | tojson }}
+        display: >-
+          {% set routers = ['GROUTE1', 'GROUTE2', 'GROUTE3', 'GROUTE4'] %}
+          {% set networks = ['GIOT', 'GIOTRED', 'GIDEONI-HOME', 'GIDEONI-GUESTS', 'GIOTORANGE'] %}
+          {
+            {% for network in networks %}
+            "{{ network }}": {
+              {% for router in routers %}
+              "{{ router }}": {{ (state_attr('sensor.wifi_clients_combined', 'clients_json') | regex_findall('"ssid":"' ~ network ~ '","router":"' ~ router ~ '","mac":"([^"]+)"') | list | default([])) | tojson }}{{ "," if not loop.last }}
+              {% endfor %}
+            }{{ "," if not loop.last }}
+            {% endfor %}
+          }
+        friendly_name: "WiFi Clients Display"

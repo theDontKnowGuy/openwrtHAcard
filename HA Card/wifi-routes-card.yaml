@@ -1,0 +1,155 @@
+type: custom:html-template-card
+title: WiFi Clients
+ignore_line_breaks: true
+content: >
+  {% set display_data = state_attr('sensor.wifi_clients_display', 'display') %}
+
+  {% set endpoints = state_attr('sensor.endpoints_ips', 'dhcp_leases') %}
+
+  {% set networks = ['GIDEONI-HOME', 'GIOT', 'GIOTRED', 'GIDEONI-GUESTS'] %}
+  {% set routers = ['GROUTE1', 'GROUTE2', 'GROUTE3', 'GROUTE4'] %}
+
+
+  <style>
+    table.wifi-clients {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    table.wifi-clients th {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ddd;
+      background-color: var(--primary-color);
+      color: var(--primary-text-color);
+    }
+    table.wifi-clients td {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ddd;
+      vertical-align: top;
+    }
+    table.wifi-clients tr:nth-child(even) td {
+      background-color: var(--secondary-background-color);
+    }
+    .client-info {
+      position: relative;
+      display: inline-block;
+    }
+    .mac-address, .router-details {
+      visibility: hidden;
+      position: absolute;
+      z-index: 1;
+      background-color: var(--primary-color);
+      color: var(--primary-text-color);
+      padding: 5px;
+      border-radius: 3px;
+      font-size: 0.9em;
+      white-space: nowrap;
+      left: 0;
+      top: 100%;
+    }
+    .client-info:hover .mac-address,
+    .router-info:hover .router-details {
+      visibility: visible;
+    }
+    .router-info {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+    }
+    .router-details { 
+      visibility: hidden;
+      position: absolute;
+      z-index: 1;
+      background-color: var(--primary-color);
+      color: var(--primary-text-color);
+      padding: 5px;
+      border-radius: 3px;
+      font-size: 0.9em;
+      white-space: nowrap;
+      left: 0;
+      top: 100%;
+      line-height: 1.4; /* Adjust spacing if needed */
+    }
+    .router-info:hover .router-details {
+      visibility: visible;
+    }
+  </style>
+
+
+  <table class="wifi-clients">
+    <tr>
+      <th>Network</th>
+      {% for router in routers %}
+      {% set router_num = router[-1] %}
+      {% set router_entity = 'sensor.groute_' ~ router_num ~ '_status' %}
+      {% set router_state_obj = states[router_entity] %}
+      {% if router_state_obj and router_state_obj.state != 'unavailable' and router_state_obj.state != 'unknown' %}
+        {% set uptime_seconds = router_state_obj.attributes.get('uptime_seconds', 0) | int %}
+        {% set hours = (uptime_seconds / 3600) | int %}
+        {% set minutes = ((uptime_seconds % 3600) / 60) | int %}
+        {% set seconds = uptime_seconds % 60 %}
+        {% set uptime_str = '%02d:%02d:%02d' | format(hours, minutes, seconds) %}
+
+        {% set memory = router_state_obj.attributes.get('memory', {}) %}
+        {% set free_kb = memory.get('free_kb', 'N/A') %}
+
+        {% set errors = router_state_obj.attributes.get('system_errors', 'N/A') %}
+        
+        {% set cpu_data = router_state_obj.attributes.get('cpu', {}) %}
+        {% set raw_cpu_str = cpu_data.get('raw', '') %}
+        {% set sys_cpu = raw_cpu_str | regex_findall_index('(\\d+)\% sys') | default('N/A') %}
+
+        {% set last_updated_time = router_state_obj.last_updated | relative_time %}
+
+        <th>
+          <span class="router-info">
+            {{ router }}
+            <span class="router-details">
+              Uptime: {{ uptime_str }}<br>
+              Sys CPU: {{ sys_cpu }}%<br>
+              Free Mem: {{ free_kb }} KB<br>
+              Errors: {{ errors }}<br>
+              Updated: {{ last_updated_time }}
+            </span>
+          </span>
+        </th>
+      {% else %}
+        <th>{{ router }} (Offline)</th>
+      {% endif %}
+      {% endfor %}
+    </tr>
+    {% for network in networks %}
+    <tr>
+      <td>{{ network }}</td>
+      {% for router in routers %}
+        {% set clients = none %}
+        {% if display_data and network in display_data and router in display_data[network] %}
+          {% set clients = display_data[network][router] %}
+        {% endif %}
+        <td>
+        {% set ns = namespace(client_strings=[]) %}
+        {% if clients %}
+          {% for client in clients %}
+            {% if endpoints %}
+              {% for endpoint in endpoints %}
+                {% if endpoint is mapping and 'mac' in endpoint and client is string and endpoint.mac | string | lower | trim == client | lower | trim %}
+                  {% set hostname = endpoint.hostname if endpoint.hostname else '' %}
+                  {% set ip = endpoint.ip.split('.')[-1] if endpoint.ip else '' %}
+                  {% set client_info = '<span class="client-info">' + hostname + ' (' + ip + ')<span class="mac-address">' + client + '</span></span>' %}
+                  {% set ns.client_strings = ns.client_strings + [client_info] %}
+                  {% break %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.client_strings | join('<br> ') | safe }}
+        {% else %}
+          No clients
+        {% endif %}
+        </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
