@@ -43,9 +43,7 @@ A Home Assistant integration for monitoring OpenWRT routers and access points. P
 2. Edit the MQTT credentials in both scripts:
    ```bash
    # Update these values in both scripts
-   MQTT_BROKER="192.168.1.100"  # Your MQTT broker IP
-   MQTT_USER="your_username"
-   MQTT_PASS="your_password"
+   mosquitto_pub -h <mqtt_server_ip> -u <username> -P  <password>  -t "openwrt/$ROUTER_NAME/status" -m "$JSON"
    ```
 
 3. Copy scripts to the router:
