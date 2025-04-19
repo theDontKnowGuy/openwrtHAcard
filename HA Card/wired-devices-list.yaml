@@ -1,0 +1,95 @@
+type: custom:html-template-card
+title: Wired Devices
+ignore_line_breaks: true
+content: >
+  {% set wifi_data = state_attr('sensor.wifi_clients_combined', 'clients_json')
+  %} {% set dhcp_leases = state_attr('sensor.endpoints_ips', 'dhcp_leases') | sort(attribute='ip') %}
+
+  {% set ns = namespace(wifi_macs=[]) %} {% set mac_matches = wifi_data |
+  regex_findall('"mac":"([^"]+)"') %} {% for mac in mac_matches %}
+    {% set ns.wifi_macs = ns.wifi_macs + [mac | lower | trim] %}
+  {% endfor %}
+
+  <style>
+    table.wired-clients {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    table.wired-clients th {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ddd;
+      background-color: var(--primary-color);
+      color: var(--primary-text-color);
+    }
+    table.wired-clients td {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ddd;
+      vertical-align: top;
+    }
+    table.wired-clients tr:nth-child(even) td {
+      background-color: var(--secondary-background-color);
+    }
+    .client-info {
+      position: relative;
+      display: inline-block;
+    }
+    .mac-address {
+      visibility: hidden;
+      position: absolute;
+      z-index: 1;
+      background-color: var(--primary-color);
+      color: var(--primary-text-color);
+      padding: 5px;
+      border-radius: 3px;
+      font-size: 0.9em;
+      white-space: nowrap;
+      left: 0;
+      top: 100%;
+    }
+    .client-info:hover .mac-address {
+      visibility: visible;
+    }
+  </style>
+
+  <table class="wired-clients">
+    <tr>
+      <th>Hostname</th>
+      <th>IP</th>
+      <th>MAC</th>
+    </tr>
+    {% for device in dhcp_leases %}
+      {% if device.mac | lower | trim not in ns.wifi_macs %}
+        <tr>
+          <td>
+            <span class="client-info">
+              {{ device.hostname }}
+              <span class="mac-address">{{ device.mac }}</span>
+            </span>
+          </td>
+          <td>{{ device.ip }}</td>
+          <td style="font-family: monospace;">{{ device.mac }}</td>
+        </tr>
+
+      {% endif %}
+    {% endfor %}
+  </table>
+style: |
+  .devices-container {
+    padding: 16px;
+  }
+  .device-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-bottom: 1px solid var(--divider-color);
+  }
+  .hostname {
+    font-weight: bold;
+  }
+  .mac {
+    font-family: monospace;
+  }

@@ -21,6 +21,9 @@ A Home Assistant integration for monitoring OpenWRT routers and access points. P
 
 ![Dashboard Example](img/3.png)
 
+![Dashboard Example](img/4.png)
+
+
 ## Prerequisites
 
 - OpenWRT router(s) with:
@@ -90,9 +93,13 @@ A Home Assistant integration for monitoring OpenWRT routers and access points. P
    - Copy files from `HA/Templates` to your Home Assistant's templates directory (usually `config/templates`)
    - Edit both files for list of routers and networks to monitor #todo - do this dynamically 
 
-5. Add the card to your dashboard:
+5. Add the WiFi devices card to your dashboard:
 
    Copy the content of the `HA Card/wifi-routes-card.yaml` to an empty dashbaord card. Set its width to 100%.
 
-6. Restart Home Assistant (a Quick Restart should do).
+6. Add the card wired devices card to your dashbaord:
+
+   Copy the content of the `HA Card/wired-devices-list.yaml` to an empty dashbaord card. Set its width to 100%.
+
+7. Restart Home Assistant (a Quick Restart should do).
 
